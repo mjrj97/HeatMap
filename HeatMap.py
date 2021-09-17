@@ -2,7 +2,9 @@
 import os.path
 from os import path
 from geopy.geocoders import Nominatim
+from geopy.geocoders import GoogleV3
 
+apikey = 'Test'
 peopleExist = path.exists("People.txt")
 addressesExist = path.exists("Addresses.txt")
 
@@ -27,37 +29,48 @@ else:
 	print("Error: Could not find Addresses.txt in folder")
 
 if peopleExist & addressesExist:
-	print(len(people))
-	print(len(addresses))
 	if len(people) > 0:
-		geolocator = Nominatim(user_agent="HeatMap")
+		geolocator = GoogleV3(api_key=apikey)
+			
+		avgLatitude = 0.0
+		avgLongitude = 0.0
+		print("\nLoading people into map...")
 
-		print("Loading people into map...")
+		loaded = 0
 		for idx, x in enumerate(people):
 			location = geolocator.geocode(x)
 			if location is None:
 				print("Error: " + people[idx], end='')
 			else:
 				print("Loaded: " + people[idx], end='')
+				loaded = loaded + 1
 				pLatitudes[idx] = location.latitude
 				pLongitudes[idx] = location.longitude
+		print(str(loaded) + " out of " + str(len(people)) + " could be loaded.")
 
-		print("Loading addresses into map...")
+		loaded = 0
+		print("\nLoading addresses into map...")
 		for idx, x in enumerate(addresses):
 			location = geolocator.geocode(x)
 			if location is None:
 				print("Error: " + addresses[idx], end='')
 			else:
 				print("Loaded: " + addresses[idx], end='')
+				loaded = loaded + 1
 				aLatitudes[idx] = location.latitude
 				aLongitudes[idx] = location.longitude
+		print("\n" + str(loaded) + " out of " + str(len(addresses)) + " could be loaded.")
 
 		gmap = gmplot.GoogleMapPlotter(pLatitudes[0], pLongitudes[0], 13)
+		gmap.apikey = apikey
 		gmap.heatmap(pLatitudes, pLongitudes, radius=75, opacity=0.3, max_intensity=5, dissipating = False)
 		gmap.scatter(aLatitudes, aLongitudes, c='#3B0B39', size = 40, marker = False )
-		gmap.draw("C:\\Users\\marti\\Desktop\\map.html")
+		desktop = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')
+		gmap.draw(desktop + "\\map.html")
+		print("\nMap output at: " + desktop + "\\map.html")
 	else:
 		if len(people) == 0:
 			print("No people in People.txt")
 		if len(addresses) == 0:
 			print("No addresses in Address.txt")
+print("\nEnd of program.")
