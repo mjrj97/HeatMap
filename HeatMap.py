@@ -1,4 +1,5 @@
-﻿from geopy.geocoders import Nominatim
+﻿import gmplot
+from geopy.geocoders import Nominatim
 geolocator = Nominatim(user_agent="HeatMap")
 
 file = open('Addresses.txt', 'r', encoding="UTF-8")
@@ -10,15 +11,15 @@ longitudes = [0] * len(addresses)
 if len(addresses) > 0:
 	for idx, x in enumerate(addresses):
 		location = geolocator.geocode(x)
-		latitudes[idx] = location.latitude
-		longitudes[idx] = location.longitude
+		if location is None:
+			print("Error: " + addresses[idx], end='')
+		else:
+			print("Loaded: " + addresses[idx], end='')
+			latitudes[idx] = location.latitude
+			longitudes[idx] = location.longitude
 
-	print("Latitudes:")
-	for x in latitudes:
-		print(x)
-
-	print("\nLongtitudes:")
-	for x in longitudes:
-		print(x)
+	gmap = gmplot.GoogleMapPlotter(latitudes[0], longitudes[0], 13)
+	gmap.heatmap(latitudes, longitudes, radius=75, opacity=0.3, max_intensity=5, dissipating = False)
+	gmap.draw("C:\\Users\\marti\\Desktop\\map.html")
 else:
 	print("No addresses found.")
